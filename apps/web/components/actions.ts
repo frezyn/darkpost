@@ -6,10 +6,10 @@ type Props = {
 };
 
 
-export const LoginWithDiscord = async () => {
+export const LoginWithDiscord = async (idAccount: string) => {
   await signIn("discord", {
-
     redirect: true,
-    redirectTo: "/"
+    redirectTo: "/",
+    idAccount,
   })
 }
