@@ -1,0 +1,36 @@
+{
+  "name": "shadcn-ui-monorepo",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "turbo build",
+    "start": "pnpm --filter web --run start --port 80",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "postinstall": "prisma generate --schema ./packages/database/src/prisma/schema.prisma"
+  },
+  "devDependencies": {
+    "@workspace/auth": "workspace:*",
+    "@workspace/database": "workspace:*",
+    "@workspace/eslint-config": "workspace:*",
+    "@workspace/trpc": "workspace:*",
+    "@workspace/billings": "workspace:*",
+    "@workspace/email": "workspace:*",
+    "@workspace/typescript-config": "workspace:*",
+    "prettier": "^3.6.2",
+    "turbo": "^2.5.5",
+    "typescript": "5.9.2"
+  },
+  "packageManager": "pnpm@10.4.1",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "dotenv-cli": "^10.0.0",
+    "next": "^15.5.4",
+    "@prisma/client": "^6.16.3",
+        "prisma": "^6.16.3"
+
+  }
+}

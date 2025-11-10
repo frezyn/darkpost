@@ -1,0 +1,16 @@
+{
+  "name": "@workspace/database",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.ts",
+  "types": "index.ts",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.4.1",
+  "dependencies": {
+     "@prisma/client": "*",
+    "prisma": "*"
+  }
+}

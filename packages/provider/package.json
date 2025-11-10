@@ -1,0 +1,10 @@
+{
+  "name": "@workspace/providers",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./api/route.ts",
+  "types": "./api/route.ts",
+  "dependencies": {
+    "zod": "^4.1.12"
+  }
+}
