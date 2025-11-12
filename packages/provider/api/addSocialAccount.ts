@@ -2,11 +2,14 @@ import { prisma } from "@workspace/database"
 import { authProcedure } from "@workspace/trpc"
 import { z } from "zod"
 
+
 // Rota para criar uma nova SocialAccount para o usuário logado
 export const createSocialAccount = authProcedure
   .input(
     z.object({
       name: z.string().min(1, { message: "O nome não pode estar em branco." }),
+      description: z.string().min(1),
+      socialNameAccount: z.string().min(1)
     })
   )
   .output(
@@ -20,12 +23,14 @@ export const createSocialAccount = authProcedure
   )
   .mutation(async ({ ctx: { session }, input }) => {
     const userId = session.user.id;
-    const { name } = input;
+    const { name, description, socialNameAccount } = input;
 
     const newSocialAccount = await prisma.socialAccount.create({
       data: {
         name: name,
         userId: userId,
+        description: description,
+        nameFromPlataform: socialNameAccount
       },
     });
 
