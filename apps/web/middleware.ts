@@ -1,4 +1,3 @@
-import { Role } from "@prisma/client";
 import { auth } from "@workspace/auth";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
@@ -14,11 +13,12 @@ const middleware = auth(async (req) => {
   }
 
   /*
-  const url = new URL(req.nextUrl.origin);
-  if (!req.auth && !req.url.includes("login")) {
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
-  }
+    const url = new URL(req.nextUrl.origin);
+    if (!req.auth && !req.url.includes("login")) {
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+  
   */
 
   return NextResponse.next();
