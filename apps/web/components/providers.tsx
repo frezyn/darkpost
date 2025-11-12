@@ -41,7 +41,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     createTRPCClient<AppRouter>({
       links: [
         httpBatchLink({
-          url: 'http://localhost:3000/api/trpc',
+          url: `https://api.darkpost.app/api/trpc`,
         }),
       ],
     }),
