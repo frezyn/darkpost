@@ -15,8 +15,8 @@ const fontMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Noob Exchange",
-  description: "Yuan foi feito para todos, recarregue sua carteira da forma mais facil e rapida possivel!",
+  title: "Darkpost",
+  description: "Agende seus post de forma rapida e simples!"
 };
 
 
