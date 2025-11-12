@@ -9,21 +9,20 @@ generator client {
 }
 
 model User {
-  id            String          @id @default(cuid())
-  name          String?
-  email         String?         @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  socialAccounts SocialAccount[] // Relação correta: Um usuário pode ter várias SocialAccounts
-  sessions      Session[]
-  Authenticator Authenticator[]
+  id             String          @id @default(cuid())
+  name           String?
+  email          String?         @unique
+  emailVerified  DateTime?
+  image          String?
+  accounts       Account[]
+  socialAccounts SocialAccount[] 
+  sessions       Session[]
+  Authenticator  Authenticator[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-// NENHUMA ALTERAÇÃO AQUI - Modelo padrão do NextAuth
 model Account {
   userId            String
   type              String
@@ -36,15 +35,13 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
+  socialAccountId   String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // ADICIONADO: Relação inversa para a tabela de ligação
-  // Isso NÃO altera a estrutura do banco de dados, apenas informa ao Prisma sobre a relação
-  linkedSocialAccounts AccountsOnSocialAccounts[]
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  socialAccount     SocialAccount? @relation("SocialAccountToAccount", fields: [socialAccountId], references: [id], onDelete: SetNull)
 
   @@id([provider, providerAccountId])
 }
@@ -82,30 +79,19 @@ model Authenticator {
   @@id([userId, credentialID])
 }
 
-
 model SocialAccount {
-  id     String @id @default(cuid())
-  name   String
-  nameFromPlataform   String?
-  userId String 
-  description   String?
-  linkedAccounts AccountsOnSocialAccounts[]
+  id              String    @id @default(cuid())
+  name            String
+  nameFromPlataform String?
+  userId          String
+  description     String?
+
+  accounts Account[] @relation("SocialAccountToAccount")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
 
-
-model AccountsOnSocialAccounts {
-  socialAccount   SocialAccount @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
-  socialAccountId String
-  account           Account @relation(fields: [provider, providerAccountId], references: [provider, providerAccountId], onDelete: Cascade)
-  provider          String
-  providerAccountId String
-  assignedAt DateTime @default(now())
-
-
-  @@id([socialAccountId, provider, providerAccountId])
+  @@index([userId])
 }
