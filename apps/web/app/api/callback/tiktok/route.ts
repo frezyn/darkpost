@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { stat } from 'fs';
+import { prisma } from '@workspace/database';
 
 const TIKTOK_TOKEN_URL = 'https://open.tiktokapis.com/v2/oauth/token/';
 const TIKTOK_USERINFO_URL = 'https://open.tiktokapis.com/v2/user/info/?';
@@ -13,14 +14,16 @@ export async function GET(request: NextRequest) {
   const state = searchParams.get('state');
   const error = searchParams.get('error');
 
-  // 1. Erro ou falta de code
-  if (error || !code) {
+
+  if (error || !code || !state) {
     return NextResponse.redirect(
       new URL(`/error?message=${error || 'OAuth failed'}`, request.url)
     );
   }
 
-  // 3. Troca code por token
+  const [userId, accountId] = state.split(",");
+
+
   const tokenResponse = await fetch(TIKTOK_TOKEN_URL, {
     method: 'POST',
     headers: {
@@ -69,14 +72,22 @@ export async function GET(request: NextRequest) {
     console.error('User Info Error:', await userResponse.text());
   }
 
-  const redirectUrl = new URL('/dashboard', request.url);
-  redirectUrl.searchParams.set('access_token', access_token);
-  redirectUrl.searchParams.set('open_id', open_id);
-  redirectUrl.searchParams.set('accountId', state!)
-  if (userInfo) {
-    redirectUrl.searchParams.set('username', userInfo.username);
-    redirectUrl.searchParams.set('display_name', userInfo.display_name);
-  }
+  await prisma.account.create({
+    data: {
+      provider: "tiktok",
+      providerAccountId: open_id,
+      type: "oauth",
+      userId: userId!,
+      socialAccountId: accountId,
+      refresh_token: refresh_token,
+      access_token: access_token,
+      expires_at: expires_in,
+    },
 
-  return NextResponse.redirect(redirectUrl);
+  })
+
+  const redirectUrl = new URL('/dashboard/accounts', request.url);
+
+  NextResponse.redirect(redirectUrl)
+
 }
