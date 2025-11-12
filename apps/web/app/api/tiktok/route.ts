@@ -1,15 +1,22 @@
 // app/api/auth/oauth/route.ts
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from 'next/server';
 
 const TIKTOK_AUTHORIZE_URL = 'https://www.tiktok.com/v2/auth/authorize/';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const searchParams = req.nextUrl.searchParams;
+  const userId = searchParams.get("id")
+
+  if (!userId) {
+    return NextResponse.json("query `id` e necessario", { status: 400 })
+  }
+
   const params = new URLSearchParams({
     client_key: process.env.AUTH_TIKTOK_ID!,
-    scope: 'user.info.basic',
+    scope: 'user.info.basic,video.upload,video.publish',
     response_type: 'code',
-    redirect_uri: `https://real-keeps-andrews-memo.trycloudflare.com/api/callback/tiktok`,
+    redirect_uri: `${process.env.NEXTAUTH_URL}/api/callback/tiktok`,
+    state: userId
   });
 
   const authUrl = `${TIKTOK_AUTHORIZE_URL}?${params.toString()}`;

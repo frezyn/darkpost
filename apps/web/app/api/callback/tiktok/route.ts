@@ -1,10 +1,11 @@
 // app/api/auth/callback/tiktok/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { stat } from 'fs';
 
 const TIKTOK_TOKEN_URL = 'https://open.tiktokapis.com/v2/oauth/token/';
-const TIKTOK_USERINFO_URL = 'https://open.tiktokapis.com/v2/user/info/';
-const REDIRECT_URI = `https://real-keeps-andrews-memo.trycloudflare.com/api/callback/tiktok`;
+const TIKTOK_USERINFO_URL = 'https://open.tiktokapis.com/v2/user/info/?';
+const REDIRECT_URI = `${process.env.NEXTAUTH_URL}/api/callback/tiktok`;
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -46,19 +47,21 @@ export async function GET(request: NextRequest) {
   const tokens = await tokenResponse.json();
   const { access_token, refresh_token, expires_in, open_id } = tokens;
 
+  const params = new URLSearchParams({
+    fields: 'avatar_url,display_name',
+  })
+
   // 4. Busca dados do usuário
-  const userResponse = await fetch(TIKTOK_USERINFO_URL, {
-    method: 'POST',
+  const userResponse = await fetch(TIKTOK_USERINFO_URL + params.toString(), {
+    method: 'GET',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${access_token}`,
     },
-    body: JSON.stringify({
-      fields: ['open_id', 'avatar_url', 'display_name', 'username'],
-    }),
   });
 
   let userInfo = null;
+
   if (userResponse.ok) {
     const data = await userResponse.json();
     userInfo = data.data.user;
@@ -69,6 +72,7 @@ export async function GET(request: NextRequest) {
   const redirectUrl = new URL('/dashboard', request.url);
   redirectUrl.searchParams.set('access_token', access_token);
   redirectUrl.searchParams.set('open_id', open_id);
+  redirectUrl.searchParams.set('accountId', state!)
   if (userInfo) {
     redirectUrl.searchParams.set('username', userInfo.username);
     redirectUrl.searchParams.set('display_name', userInfo.display_name);
