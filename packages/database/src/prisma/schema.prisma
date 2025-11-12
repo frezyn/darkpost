@@ -86,9 +86,9 @@ model Authenticator {
 model SocialAccount {
   id     String @id @default(cuid())
   name   String
+  nameFromPlataform   String?
   userId String 
-
-
+  description   String?
   linkedAccounts AccountsOnSocialAccounts[]
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -99,15 +99,11 @@ model SocialAccount {
 
 
 model AccountsOnSocialAccounts {
-
   socialAccount   SocialAccount @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
   socialAccountId String
-
-
   account           Account @relation(fields: [provider, providerAccountId], references: [provider, providerAccountId], onDelete: Cascade)
   provider          String
   providerAccountId String
-
   assignedAt DateTime @default(now())
 
 
