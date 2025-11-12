@@ -1,85 +1,88 @@
 import React, { useEffect, useRef, useState } from "react";
-import AccountDetailsDialog, { Platform } from "./accountDialogInfo";
-import { Avatar, AvatarImage, AvatarFallback } from "@workspace/ui/components/avatar";
-import { Button } from "@workspace/ui/components/button";
-import { Trash, MoreHorizontal, Info } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@workspace/ui/components/alert-dialog";
-import { Account } from "@workspace/database"
+import AccountDetailsDialog from "./accountDialogInfo";
+import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
+import { MoreHorizontal } from "lucide-react";
+import { Dialog, DialogTrigger } from "@workspace/ui/components/dialog";
 
 
+export type SocialAccountIntercace = {
+  name: string;
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  userId: string;
+  nameFromPlataform?: string | null | undefined
+  linkedAccounts: {
+    socialAccountId: string;
+    provider: string;
+    providerAccountId: string;
+    assignedAt: string;
+  }[];
+  description?: string | null | undefined;
+}
 
 type Props = {
-  account: Account;
-  onDelete?: (id: string) => void;
+  account: SocialAccountIntercace;
   className?: string;
 };
 
-export default function AccountRow({ account, onDelete, className = "" }: Props) {
-  const initials = getInitials(account.provider);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement | null>(null);
-
+export default function AccountRow({ account, className = "" }: Props) {
+  const initials = getInitials(account.name);
 
 
   return (
+
     <div
       role="listitem"
-      className={`flex items-center gap-4 rounded-lg border bg-white dark:bg-black px-4 py-3 transition-shadow hover:shadow-sm ${className}`}
+      className={`flex items-center justify-between gap-4 rounded-lg border bg-white dark:bg-black px-4 py-3 transition-shadow hover:shadow-sm ${className}`}
     >
-      <div className="flex items-center gap-4 min-w-0">
+      {/* Conteúdo principal (avatar + info) */}
+      <div className="flex items-center gap-4 min-w-0 flex-1">
         <Avatar className="h-12 w-12 flex-shrink-0">
-          <AvatarFallback className=" text-gray-900 dark:text-gray-100">
+          <AvatarFallback className="text-gray-900 dark:text-gray-100">
             {initials}
           </AvatarFallback>
-
         </Avatar>
 
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <div className="flex flex-col min-w-0">
-              <div className="flex items-baseline gap-2">
-                <span className="truncate text-sm font-semibold text-black dark:text-white">
-                  {account.provider}
-                </span>
-                {account.provider && (
-                  <span className="truncate text-xs text-gray-500 dark:text-gray-400">@{account.provider}</span>
-                )}
-              </div>
-
-
-            </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-baseline gap-1.5">
+            <h3 className="truncate text-base font-semibold text-black dark:text-white">
+              {account.name}
+            </h3>
+            {account.linkedAccounts?.map((lc) => (
+              <span
+                key={lc.provider}
+                className="truncate text-xs text-gray-500 dark:text-gray-400"
+              >
+                @{lc.provider}
+              </span>
+            ))}
           </div>
 
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-          </div>
+          {account.description && (
+            <p className="mt-2.5 text-sm text-gray-700 dark:text-gray-300 line-clamp-2 leading-relaxed">
+              {account.description}
+            </p>
+          )}
         </div>
       </div>
 
-      <div className="ml-auto flex items-center gap-2 relative">
-
-        <div ref={menuRef} className="relative">
+      {/* Trigger dos 3 pontinhos (alinhado à direita) */}
+      <Dialog>
+        <DialogTrigger asChild>
           <button
-            aria-haspopup="menu"
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((s) => !s)}
-            className="inline-flex items-center justify-center rounded-md p-1 hover:bg-gray-100 dark:hover:bg-gray-800"
-            title="Mais ações"
+            className="flex h-8 w-8 items-center justify-center rounded-md  hover:bg-muted  transition-colors"
+            aria-label="Mais opções"
           >
-            <MoreHorizontal className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+            <MoreHorizontal className="h-5 w-5" />
           </button>
-
-
-        </div>
-      </div>
+        </DialogTrigger>
+        <AccountDetailsDialog account={account} />
+      </Dialog>
     </div>
+
+
+
   );
 }
 
@@ -94,17 +97,7 @@ function getInitials(name?: string) {
     .toUpperCase();
 }
 
-function useOutsideClick<T extends HTMLElement = HTMLElement>(ref: React.RefObject<T>, cb: () => void) {
-  useEffect(() => {
-    function onDoc(e: MouseEvent) {
-      const el = ref.current;
-      if (!el) return;
-      if (e.target instanceof Node && !el.contains(e.target)) cb();
-    }
-    document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
-  }, [ref, cb]);
-}
+
 
 function formatConnectedAt(iso?: string) {
   if (!iso) return "";
@@ -122,7 +115,7 @@ function formatConnectedAt(iso?: string) {
   }
 }
 
-function PlatformPill({ platform }: { platform: Platform }) {
+function PlatformPill({ platform }: { platform: string }) {
   const base = "inline-flex items-center gap-2 rounded-full px-2.5 py-0.5 text-xs font-medium";
   if (platform === "tiktok") {
     return (
