@@ -1,32 +1,21 @@
 import React from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@workspace/ui/components/dialog";
+import { DialogContent, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog";
 import { Badge } from "@workspace/ui/components/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@workspace/ui/components/avatar";
+import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { Button } from "@workspace/ui/components/button";
 import { format } from "date-fns";
-import { Info } from "lucide-react";
-import { handle_connect_tiktok } from "./actions";
 
-export type Platform = "tiktok" | "facebook" | "youtube";
+import { SocialAccountIntercace } from "./accountRow";
+
+
 const platform = [{
   name: "tiktok",
   connected: false
 }]
 
-type Account = {
-  id: string;
-  name: string;
-  username?: string;
-  avatarUrl?: string | null;
-  platforms: Platform[];
-  connectedAt?: string;
-  description?: string;
-};
-
-
 
 type Props = {
-  account: Account;
+  account: SocialAccountIntercace;
   children?: React.ReactNode;
 };
 
@@ -34,124 +23,118 @@ export default function AccountDetailsDialog({ account, children }: Props) {
 
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-md bg-white dark:bg-black border">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
-              {account.avatarUrl ? (
-                <AvatarImage src={account.avatarUrl} alt={account.name} />
-              ) : (
-                <AvatarFallback className="text-gray-900 dark:text-gray-100">{(account.name || "U").slice(0, 2).toUpperCase()}</AvatarFallback>
-              )}
-            </Avatar>
 
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-black dark:text-white">{account.name}</span>
-              {account.username && <span className="text-xs text-gray-500 dark:text-gray-400">@{account.username}</span>}
-            </div>
-            <Info className="ml-auto h-4 w-4 text-gray-400 dark:text-gray-600" />
-          </DialogTitle>
-        </DialogHeader>
+    <DialogContent className="max-w-md bg-white dark:bg-black border">
+      <DialogHeader>
+        <DialogTitle className="flex items-center gap-3">
+          <Avatar className="h-10 w-10">
+            <AvatarFallback className="text-gray-900 dark:text-gray-100">{(account.name || "U").slice(0, 2).toUpperCase()}</AvatarFallback>
+          </Avatar>
 
-        <div className="mt-4 space-y-3">
-          <div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">Plataformas</div>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {account.platforms.map((p) => (
-                <PlatformBadge platform={p} key={p} />
-              ))}
-            </div>
+          <div className="flex flex-col">
+            <span className="text-sm font-medium text-black dark:text-white">{account.name}</span>
+            {account.nameFromPlataform && <span className="text-xs text-gray-500 dark:text-gray-400">@{account.nameFromPlataform}</span>}
           </div>
 
-          <div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">Conectado em</div>
-            <div className="mt-1 text-sm text-black dark:text-white">
-              {account.connectedAt ? format(new Date(account.connectedAt), "PPPp") : "Sem informação"}
-            </div>
-          </div>
+        </DialogTitle>
+      </DialogHeader>
 
-          {account.description && (
-            <div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">Descrição</div>
-              <div className="mt-1 text-sm text-gray-700 dark:text-gray-300">{account.description}</div>
-            </div>
-          )}
+      <div className="mt-4 space-y-3">
+        <div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">Plataformas</div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {account.linkedAccounts.map((p, idx) => (
+              <PlatformBadge platform={p.provider} key={idx} />
+            ))}
+          </div>
         </div>
 
-        <div className="flex flex-col gap-3">
-          {platform.map((a) => (
-            <div key={a.name} className="flex items-center justify-between gap-4 p-3 border rounded-md bg-card">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center">
+        <div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">Conectado em</div>
+          <div className="mt-1 text-sm text-black dark:text-white">
+            {account.createdAt ? format(new Date(account.createdAt), "PPPp") : "Sem informação"}
+          </div>
+        </div>
 
+        {account.description && (
+          <div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">Descrição</div>
+            <div className="mt-1 text-sm text-gray-700 dark:text-gray-300">{account.description}</div>
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-3">
+        {platform.map((a, idx) => (
+          <div key={idx} className="flex items-center justify-between gap-4 p-3 border rounded-md bg-card">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center">
+
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium capitalize">{a.name}</span>
+                  {a.connected ? (
+                    <span className="text-xs text-green-400">conectado</span>
+                  ) : (
+                    <span className="text-xs text-zinc-400">não conectado</span>
+                  )}
                 </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium capitalize">{a.name}</span>
-                    {a.connected ? (
-                      <span className="text-xs text-green-400">conectado</span>
-                    ) : (
-                      <span className="text-xs text-zinc-400">não conectado</span>
-                    )}
-                  </div>
-                  <div className="text-xs text-muted-foreground truncate">
-                    {a.connected ? "Conta conectada" : "Nenhuma conta conectada"}
-                  </div>
+                <div className="text-xs text-muted-foreground truncate">
+                  {a.connected ? "Conta conectada" : "Nenhuma conta conectada"}
                 </div>
               </div>
+            </div>
 
-              <div className="flex items-center gap-2">
-                {a.connected ? (
-                  <>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={async () => {
-
-
-                      }}
-                    >
-                      Atualizar
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={async () => {
-
-                      }}
-                    >
-                      Desconectar
-                    </Button>
-                  </>
-                ) : (
+            <div className="flex items-center gap-2">
+              {a.connected ? (
+                <>
                   <Button
+                    variant="outline"
                     size="sm"
                     onClick={async () => {
-                      handle_connect_tiktok()
+
+
                     }}
                   >
-                    Conectar
+                    Atualizar
                   </Button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={async () => {
 
-        <div className="mt-6 flex justify-end">
-          <Button variant="ghost" onClick={() => { }} className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
-            Fechar
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+                    }}
+                  >
+                    Desconectar
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  size="sm"
+                  onClick={async () => {
+
+                  }}
+                >
+                  Conectar
+                </Button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-6 flex justify-end">
+        <Button variant="ghost" onClick={() => { }} className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
+          Fechar
+        </Button>
+      </div>
+    </DialogContent>
+
   );
 }
 
-/** pequeno Badge com ícone para as plataformas */
-function PlatformBadge({ platform }: { platform: Platform }) {
+function PlatformBadge({ platform }: { platform: string }) {
   const base = "inline-flex items-center gap-2 rounded-full px-2 py-1 text-xs font-medium";
   if (platform === "tiktok") {
     return (
