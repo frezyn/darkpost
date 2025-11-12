@@ -4,25 +4,38 @@ import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { MoreHorizontal } from "lucide-react";
 import { Dialog, DialogTrigger } from "@workspace/ui/components/dialog";
 
-
-export type SocialAccountIntercace = {
+export interface Account {
   name: string;
   id: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
   userId: string;
-  nameFromPlataform?: string | null | undefined
-  linkedAccounts: {
-    socialAccountId: string;
-    provider: string;
-    providerAccountId: string;
-    assignedAt: string;
-  }[];
-  description?: string | null | undefined;
+  description: string | null | undefined;
+  accounts: LinkedAccount[];
 }
 
+interface LinkedAccount {
+  provider: string;
+  providerAccountId: string;
+  socialAccountId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: string;
+  type: string;
+  refresh_token: string | null;
+  access_token: string | null;
+  expires_at: number | null;
+  token_type: string | null;
+  scope: string | null;
+  id_token: string | null;
+  session_state: string | null;
+}
+
+// Array de contas
+export type Accounts = Account[];
+
 type Props = {
-  account: SocialAccountIntercace;
+  account: Account;
   className?: string;
 };
 
@@ -31,7 +44,6 @@ export default function AccountRow({ account, className = "" }: Props) {
 
 
   return (
-
     <div
       role="listitem"
       className={`flex items-center justify-between gap-4 rounded-lg border bg-white dark:bg-black px-4 py-3 transition-shadow hover:shadow-sm ${className}`}
@@ -49,7 +61,7 @@ export default function AccountRow({ account, className = "" }: Props) {
             <h3 className="truncate text-base font-semibold text-black dark:text-white">
               {account.name}
             </h3>
-            {account.linkedAccounts?.map((lc) => (
+            {account.accounts?.map((lc) => (
               <span
                 key={lc.provider}
                 className="truncate text-xs text-gray-500 dark:text-gray-400"
