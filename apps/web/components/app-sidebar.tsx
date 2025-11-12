@@ -40,10 +40,14 @@ const data = {
     avatar: "/avatars/shadcn.jpg",
   },
   navMain: [
-
+    {
+      title: "Dashboard",
+      url: "/dashboard",
+      icon: IconDashboard,
+    },
     {
       title: "Contas",
-      url: "#",
+      url: "/dashboard/accounts",
       icon: IconListDetails,
     },
     {
