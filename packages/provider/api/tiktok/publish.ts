@@ -27,7 +27,7 @@ export const publishPost = authProcedure.input(z.object({
       caption: caption || "Sem legenda",
       accountId,
     });
-    return { published: true, publishId: result.publish_id };
+    return { published: true, publishId: result.postId, linkVideo: result.linkVideo };
   }
 })
 
