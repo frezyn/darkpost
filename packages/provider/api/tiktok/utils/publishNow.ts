@@ -1,8 +1,7 @@
-// src/server/api/trpc/procedures/post/publishNow.ts
 import { S3Client } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { PostStatus, prisma } from "@workspace/database";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { fetchTikTokPostStatus } from "./fetchVideoinfoTiktok";
 
 
 const s3 = new S3Client({ region: process.env.AWS_REGION });
@@ -147,16 +146,22 @@ export async function publishVideoNow({
       }
     }
 
-    // 7. Atualizar Post com sucesso
     await prisma.post.update({
       where: { id: post.id },
       data: {
         status: PostStatus.SUCCESS,
-        tiktokPostId: publish_id,
+        PostId: publish_id,
       },
     });
 
-    return { publish_id, postId: post.id };
+    const { linkVideo } = await fetchTikTokPostStatus({
+      postId: post.id,
+      publishId: publish_id,
+      accessToken: accessToken
+    })
+
+    return { publish_id, postId: post.id, linkVideo };
+
   } catch (error: any) {
     // 8. Marcar como falha
     await prisma.post.update({
