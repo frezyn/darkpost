@@ -1,8 +1,11 @@
+'use client';
+
 import React, { useEffect, useRef, useState } from "react";
 import AccountDetailsDialog from "./accountDialogInfo";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { MoreHorizontal } from "lucide-react";
-import { Dialog, DialogTrigger } from "@workspace/ui/components/dialog";
+import { Dialog, DialogTrigger, DialogContent } from "@workspace/ui/components/dialog";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 export interface Account {
   name: string;
@@ -31,31 +34,59 @@ interface LinkedAccount {
   session_state: string | null;
 }
 
-// Array de contas
 export type Accounts = Account[];
 
 type Props = {
   account: Account;
   className?: string;
+  allAccounts: Accounts; // Adicione todas as contas para buscar pelo ID
 };
 
-export default function AccountRow({ account, className = "" }: Props) {
-  const initials = getInitials(account.name);
+export default function AccountRow({ account, className = "", allAccounts }: Props) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [open, setOpen] = useState(false);
 
+  const dialogId = searchParams.get("accountId");
+
+  // Abre o dialog se o ID na URL for igual ao da conta
+  useEffect(() => {
+    if (dialogId === account.id) {
+      setOpen(true);
+    } else {
+      setOpen(false);
+    }
+  }, [dialogId, account.id]);
+
+  // Função para abrir o modal e atualizar a URL
+  const handleOpenChange = (isOpen: boolean) => {
+    if (isOpen) {
+      const params = new URLSearchParams(searchParams);
+      params.set("accountId", account.id);
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    } else {
+      const params = new URLSearchParams(searchParams);
+      params.delete("accountId");
+      router.push(`${pathname}${params.toString() ? `?${params.toString()}` : ""}`, { scroll: false });
+    }
+    setOpen(isOpen);
+  };
+
+  const initials = getInitials(account.name);
 
   return (
     <div
       role="listitem"
       className={`flex items-center justify-between gap-4 rounded-lg border bg-white dark:bg-black px-4 py-3 transition-shadow hover:shadow-sm ${className}`}
     >
-      {/* Conteúdo principal (avatar + info) */}
+      {/* Conteúdo principal */}
       <div className="flex items-center gap-4 min-w-0 flex-1">
         <Avatar className="h-12 w-12 flex-shrink-0">
           <AvatarFallback className="text-gray-900 dark:text-gray-100">
             {initials}
           </AvatarFallback>
         </Avatar>
-
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline gap-1.5">
             <h3 className="truncate text-base font-semibold text-black dark:text-white">
@@ -70,7 +101,6 @@ export default function AccountRow({ account, className = "" }: Props) {
               </span>
             ))}
           </div>
-
           {account.description && (
             <p className="mt-2.5 text-sm text-gray-700 dark:text-gray-300 line-clamp-2 leading-relaxed">
               {account.description}
@@ -79,22 +109,23 @@ export default function AccountRow({ account, className = "" }: Props) {
         </div>
       </div>
 
-      {/* Trigger dos 3 pontinhos (alinhado à direita) */}
-      <Dialog>
+      {/* Botão de 3 pontinhos */}
+      <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild>
           <button
-            className="flex h-8 w-8 items-center justify-center rounded-md  hover:bg-muted  transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-muted transition-colors"
             aria-label="Mais opções"
           >
             <MoreHorizontal className="h-5 w-5" />
           </button>
         </DialogTrigger>
-        <AccountDetailsDialog account={account} />
+
+        {/* Renderiza o dialog com a conta correta */}
+        <DialogContent>
+          <AccountDetailsDialog account={account} />
+        </DialogContent>
       </Dialog>
     </div>
-
-
-
   );
 }
 
