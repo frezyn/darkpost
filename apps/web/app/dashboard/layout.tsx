@@ -24,7 +24,7 @@ export default function Root({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased `}
+        className={`${fontSans.variable} ${fontMono.variable} bg-background font-sans antialiased `}
       >
 
         <SidebarProvider
@@ -35,9 +35,8 @@ export default function Root({
             } as React.CSSProperties
           }
         >
-          <AppSidebar variant="sidebar" />
+          <AppSidebar variant="floating" />
           <SidebarInset>
-            <SiteHeader />
             {children}
           </SidebarInset>
         </SidebarProvider >
