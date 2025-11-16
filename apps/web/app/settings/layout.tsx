@@ -16,7 +16,6 @@ export default async function RootSettings({
       <Toaster />
       <div className="max-w-screen-xl w-full mx-auto max-xl:px-12">
         <SidebarProvider>
-          <AppSidebar variant="sidebar" />
           {children}
         </SidebarProvider>
       </div>
