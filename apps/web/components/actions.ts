@@ -13,3 +13,11 @@ export const LoginWithDiscord = async (idAccount: string) => {
     idAccount,
   })
 }
+
+
+export const LoginWithGoogle = async () => {
+  await signIn("google", {
+    redirect: true,
+    redirectTo: "/dashboard",
+  })
+}
