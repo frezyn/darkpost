@@ -1,7 +1,7 @@
 
 import crypto from "node:crypto";
 import { NextResponse } from "next/server";
-import { checkPayment } from "../helpers/checkPayment";
+
 
 /*
  Eu queria muito ela, sera que um dia irei ficar com a bianca? 
@@ -47,7 +47,7 @@ export const webhookHandle = async (req: Request) => {
     try {
       switch (data.action) {
         case "payment.updated":
-          await checkPayment(data.data.id);
+
           break;
       }
     } catch (err: any) {

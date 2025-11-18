@@ -24,27 +24,7 @@ export const checkPaymentStatus = authProcedure.input(z.object({
     })
   }
 
-  const userid = await prisma.billing.findUnique({
-    where: {
-      id: String(paymentId),
-    },
-    select: {
-      userId: true,
-      status: true
-    }
-  })
-
-
-  if (!!userid && userid.userId !== opts.ctx.session.user.id) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED"
-    })
-  }
-
-
-
-
   return {
-    status: userid?.status as EnumStatus
+    status: EnumStatus.PENDING
   }
 })
