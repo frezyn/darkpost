@@ -30,6 +30,8 @@ import {
   useSidebar,
 } from "@workspace/ui/components/sidebar"
 import colors from "tailwindcss/colors"
+import { SingOut } from "./actions"
+
 
 export function NavUser() {
   const { isMobile } = useSidebar()
@@ -73,7 +75,7 @@ export function NavUser() {
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage src={user?.image!} alt={user?.name!} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  <AvatarFallback className="rounded-lg">{user.name?.charAt(1).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{user.name}</span>
@@ -85,6 +87,7 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
+              {/*
               <DropdownMenuItem>
                 <IconUserCircle />
                 Account
@@ -97,9 +100,12 @@ export function NavUser() {
                 <IconNotification />
                 Notifications
               </DropdownMenuItem>
+              */}
             </DropdownMenuGroup>
+            {/*
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            */}
+            <DropdownMenuItem onClick={() => SingOut()} >
               <IconLogout />
               Log out
             </DropdownMenuItem>
