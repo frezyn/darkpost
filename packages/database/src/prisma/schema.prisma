@@ -9,20 +9,19 @@ generator client {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
+  id              String    @id @default(cuid())
+  name            String?
+  email           String?   @unique
+  emailVerified   DateTime?
+  image           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  socialAccount SocialAccount[]
-
-  Authenticator Authenticator[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  accounts        Account[]
+  sessions        Session[]
+  socialAccounts  SocialAccount[]
+  connectedAccounts ConnectedAccount[]  // ← agora User tem acesso direto!
+  Authenticator   Authenticator[]
 }
 
 model Account {
@@ -39,8 +38,7 @@ model Account {
   id_token          String? @db.Text
   session_state     String?
 
-  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  ConnectedAccount ConnectedAccount[]
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@index([userId])
@@ -51,9 +49,8 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model VerificationToken {
@@ -65,41 +62,42 @@ model VerificationToken {
 }
 
 model Authenticator {
-  credentialID         String  @unique
-  userId               String
-  providerAccountId    String
-  credentialPublicKey  String
-  counter              Int
-  credentialDeviceType String
-  credentialBackedUp   Boolean
-  transports           String?
+  credentialID          String  @unique
+  userId                String
+  providerAccountId     String
+  credentialPublicKey   String
+  counter               Int
+  credentialDeviceType  String
+  credentialBackedUp    Boolean
+  transports            String?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                  User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, credentialID])
 }
 
 model SocialAccount {
-  id        String   @id @default(cuid())
-  userId    String
-  name      String
-  avatarUrl String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String    @id @default(cuid())
+  userId        String
+  name          String
+  description   String    @default("")
+  avatarUrl     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   connectedAccounts ConnectedAccount[]
-  Post              Post[]
+  posts         Post[]
 
   @@index([userId])
 }
 
 model ConnectedAccount {
-  id        String @id @default(cuid())
-  accountId String
-  platform  String
+  id                String    @id @default(cuid())
+  userId            String              // ← SEGURANÇA: dono real da conta
+  socialAccountId   String?             // ← agrupamento opcional (perfil)
 
+  platform          String
   platformAccountId String
   username          String?
   displayName       String?
@@ -107,39 +105,42 @@ model ConnectedAccount {
   avatarUrl         String?
   followers         Int?
 
-  accessToken    String    @db.Text
-  refreshToken   String?   @db.Text
-  tokenExpiresAt DateTime?
+  accessToken       String    @db.Text
+  refreshToken      String?   @db.Text
+  tokenExpiresAt    DateTime?
+  scopes            String[]  @default([])
 
-  scopes String[]
+  isActive          Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  isActive  Boolean  @default(true)
+  // Relações
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  socialAccount     SocialAccount? @relation(fields: [socialAccountId], references: [id], onDelete: SetNull)
 
-  account         Account        @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  SocialAccount   SocialAccount? @relation(fields: [socialAccountId], references: [id])
-  socialAccountId String?
-
-  @@unique([accountId, platform])
-  @@index([accountId])
-  @@index([platform, platformAccountId])
+  @@unique([platform, platformAccountId])
+  @@unique([userId, platform, platformAccountId])
+  @@index([userId])
+  @@index([socialAccountId])
+  @@index([platform])
 }
 
 model Post {
-  id             String     @id @default(cuid())
+  id             String      @id @default(cuid())
   userId         String
   videoUrl       String
   caption        String?
+  imageVideo      String?
   scheduledAt    DateTime?
-  status         PostStatus @default(PENDING)
-  PostId         String?
-  LinkVideo      String?
-  socialAccounId String
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  status         PostStatus  @default(PENDING)
+  postId         String?
+  linkVideo      String?
 
-  socialAccount SocialAccount @relation(fields: [socialAccounId], references: [id], onDelete: Cascade)
+  socialAccountId String
+  socialAccount   SocialAccount @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
   @@index([scheduledAt])
   @@index([status])
