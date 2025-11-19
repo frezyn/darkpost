@@ -4,17 +4,45 @@ import { NextResponse } from "next/server";
 
 
 const middleware = auth(async (req) => {
+  const { nextUrl } = req;
+  const pathname = nextUrl.pathname;
 
-  const codeInvite = req.nextUrl.searchParams.get("code");
-  const cookieStore = await cookies()
-
+  const codeInvite = nextUrl.searchParams.get("code");
   if (codeInvite) {
-    cookieStore.set("code", codeInvite)
+    const cookieStore = cookies();
+    (await cookieStore).set("code", codeInvite, {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
   }
-  const url = new URL(req.nextUrl.origin);
-  if (!req.auth && !req.url.includes("login")) {
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
+
+
+  if (!req.auth) {
+
+    if (pathname !== "/login" && !pathname.startsWith("/api") && !pathname.startsWith("/_next")) {
+      const loginUrl = new URL("/login", nextUrl.origin);
+
+      loginUrl.searchParams.set("callbackUrl", pathname + nextUrl.search);
+      return NextResponse.redirect(loginUrl);
+    }
+    return NextResponse.next();
+  }
+
+
+  const userId = req.auth.user?.id;
+  if (userId) {
+
+    if (pathname.startsWith("/dashboard") || pathname.startsWith("/accounts")) {
+      return NextResponse.next();
+    }
+
+
+    if (pathname === "/" || pathname === "/login" || pathname.startsWith("/public")) {
+      const dashboardUrl = new URL("/dashboard", nextUrl.origin);
+      return NextResponse.redirect(dashboardUrl);
+    }
   }
 
   return NextResponse.next();
