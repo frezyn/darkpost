@@ -32,9 +32,11 @@ const worker = new Worker(
       data: { status: PostStatus.PROCESSING, scheduledAt: new Date() },
     });
 
+    const videoKeu = post.videoUrl.split("/").pop()!
+
     try {
       const result = await publishVideoNow({
-        videoKey: post.videoUrl.split("/").pop()!,
+        videoKey: post.videoUrl.split("/").slice(-2).join("/"),
         caption: post.caption || "",
         accountId: post.socialAccountId,
       });
