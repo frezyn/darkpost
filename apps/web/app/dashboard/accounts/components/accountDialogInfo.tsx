@@ -31,7 +31,7 @@ export default function AccountDetailsDialog({ account, children }: Props) {
   );
 
 
-  const { mutateAsync: deleteAccount } = useMutation(trpc.providers.deleteaccount.mutationOptions({}))
+  const { mutateAsync: deleteAccount } = useMutation(trpc.providers.disconnectAccount.mutationOptions({}))
 
   const getConnectedAccount = (platform: PlatformKey) =>
     account.accounts.find((acc) => acc.provider.toLowerCase() === platform);
