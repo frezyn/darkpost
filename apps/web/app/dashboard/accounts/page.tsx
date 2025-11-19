@@ -67,7 +67,7 @@ export default function ProfilesPage() {
   const connectAccount = (platform: string) => {
     if (!session?.user?.id || !selectedProfile?.id) return;
     // router.replace(...) você coloca depois
-    alert(`Conectar ${platform} - Implementar depois`);
+    alert(`Conta sem um plano ativo ${platform} -- Dps crio um aleta mais bonitinho, mas por enquanto, vai esse mesmo.`);
   };
 
   return (
