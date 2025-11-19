@@ -41,7 +41,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     createTRPCClient<AppRouter>({
       links: [
         httpBatchLink({
-          url: `${process.env.NEXTAUTH_URL}/api/trpc`,
+          url: `/api/trpc`,
         }),
       ],
     }),

@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { motion } from "motion/react";
-import { cn } from "@workspace/ui/lib/utils";
+import { cn } from "../../lib/utils";
 
 export const BackgroundBeams = React.memo(
   ({ className }: { className?: string }) => {
@@ -56,6 +56,7 @@ export const BackgroundBeams = React.memo(
       "M-51 -565C-51 -565 17 -160 481 -33C945 94 1013 499 1013 499",
       "M-44 -573C-44 -573 24 -168 488 -41C952 86 1020 491 1020 491",
       "M-37 -581C-37 -581 31 -176 495 -49C959 78 1027 483 1027 483",
+      "M-30 -589C-30 -589 38 -184 502 -57C966 70 1034 475 1034 475",
     ];
     return (
       <div
@@ -79,10 +80,19 @@ export const BackgroundBeams = React.memo(
             strokeWidth="0.5"
           ></path>
 
+          {paths.map((path, index) => (
+            <motion.path
+              key={`path-` + index}
+              d={path}
+              stroke={`url(#goldGradient-${index})`}
+              strokeOpacity="0.4"
+              strokeWidth="0.5"
+            ></motion.path>
+          ))}
           <defs>
             {paths.map((path, index) => (
               <motion.linearGradient
-                id={`linearGradient-${index}`}
+                id={`goldGradient-${index}`}
                 key={`gradient-${index}`}
                 initial={{
                   x1: "0%",
@@ -103,10 +113,11 @@ export const BackgroundBeams = React.memo(
                   delay: Math.random() * 10,
                 }}
               >
-                <stop stopColor="#18CCFC" stopOpacity="0"></stop>
-                <stop stopColor="#18CCFC"></stop>
-                <stop offset="32.5%" stopColor="#6344F5"></stop>
-                <stop offset="100%" stopColor="#AE48FF" stopOpacity="0"></stop>
+                <stop offset="0%" stopColor="#eab308" stopOpacity="0" />
+                <stop offset="20%" stopColor="#facc15" />
+                <stop offset="50%" stopColor="#eab308" />
+                <stop offset="80%" stopColor="#f59e0b" />
+                <stop offset="100%" stopColor="#f97316" stopOpacity="0" />
               </motion.linearGradient>
             ))}
 
@@ -130,3 +141,4 @@ export const BackgroundBeams = React.memo(
 );
 
 BackgroundBeams.displayName = "BackgroundBeams";
+
