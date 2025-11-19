@@ -45,8 +45,10 @@ export function NavMain({
                 >
                   <Link prefetch href={item.url} className="flex items-center gap-2 w-full">
 
-                    {item.icon && <item.icon className="h-4 w-4" color={colors.yellow["500"]} />}
-                    <span>{item.title}</span>
+                    {item.icon && <item.icon className="h-4 w-4"
+                      //@ts-ignore
+                      color={colors.yellow["500"]} />}
+                    < span > {item.title}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -54,6 +56,6 @@ export function NavMain({
           })}
         </SidebarMenu>
       </SidebarGroupContent>
-    </SidebarGroup>
+    </SidebarGroup >
   )
 }

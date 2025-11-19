@@ -1,21 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Search, Plus, MoreVertical, Copy } from "lucide-react";
+import { useState } from "react";
+import { Search, Plus, Copy } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Card } from "@workspace/ui/components/card";
 import { Input } from "@workspace/ui/components/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@workspace/ui/components/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@workspace/ui/components/dropdown-menu";
 import { cn } from "@workspace/ui/lib/utils";
 import { useTRPC } from "@/utils/trpc";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Dialog, DialogTrigger } from "@workspace/ui/components/dialog";
 import { AddAccountModal } from "./components/dialogAddAccount";
-import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "@workspace/auth";
 
+// Ícones (mantidos)
 const platformIcons = {
   tiktok: () => (
     <svg width="48px" height="48px" viewBox="0 0 48 48" fill="currentColor">
@@ -42,10 +41,8 @@ const platformConfig = [
 
 export default function ProfilesPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedProfile, setSelectedProfile] = useState<any>(null);
+  const [selectedProfile, setSelectedProfile] = useState<any>(null); // Você controla manualmente
 
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const trpc = useTRPC();
 
@@ -54,11 +51,7 @@ export default function ProfilesPage() {
   );
 
   const disconnectMutation = useMutation(
-    trpc.providers.disconnectAccount.mutationOptions({
-      onSuccess: () => {
-        // Opcional: refetch
-      },
-    })
+    trpc.providers.disconnectAccount.mutationOptions()
   );
 
   const profiles = profilesData?.accounts || [];
@@ -66,30 +59,15 @@ export default function ProfilesPage() {
     profile.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Ler accountId da URL ao carregar
-  useEffect(() => {
-    const accountIdFromUrl = searchParams.get("accountId");
-    if (accountIdFromUrl && profiles.length > 0) {
-      const profile = profiles.find((p: any) => p.id === accountIdFromUrl);
-      if (profile) {
-        setSelectedProfile(profile);
-      }
-    }
-  }, [searchParams, profiles]);
-
-  // Atualiza a URL quando seleciona um perfil
   const selectProfile = (profile: any) => {
     setSelectedProfile(profile);
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("accountId", profile.id);
-    router.replace(`?${params.toString()}`, { scroll: false });
+    // URL você adiciona depois, quando quiser
   };
 
   const connectAccount = (platform: string) => {
     if (!session?.user?.id || !selectedProfile?.id) return;
-    router.replace(
-      `/api/${platform}?userId=${session.user.id}&accountId=${selectedProfile.id}`
-    );
+    // router.replace(...) você coloca depois
+    alert(`Conectar ${platform} - Implementar depois`);
   };
 
   return (
@@ -101,23 +79,20 @@ export default function ProfilesPage() {
         </div>
 
         <div className="grid lg:grid-cols-4 gap-8">
-          {/* Sidebar */}
           <aside className="lg:col-span-1">
-            <div className="flex items-center justify-between mb-6">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-                <Input
-                  placeholder="Buscar perfil"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-zinc-900 border-zinc-800 text-white placeholder:text-gray-600"
-                />
-              </div>
+            <div className="relative flex-1 mb-6">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+              <Input
+                placeholder="Buscar perfil"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-zinc-900 border-zinc-800 text-white"
+              />
             </div>
 
             <Dialog>
               <DialogTrigger asChild>
-                <Button className="w-full mb-6 bg-yellow-500 text-black hover:bg-yellow-400 font-medium">
+                <Button className="w-full mb-6 bg-yellow-500 text-black hover:bg-yellow-400">
                   <Plus className="h-4 w-4 mr-2" />
                   Novo perfil
                 </Button>
@@ -128,68 +103,55 @@ export default function ProfilesPage() {
             <div className="space-y-3">
               {isLoading ? (
                 <p className="text-center text-zinc-500 py-8">Carregando...</p>
-              ) : filteredProfiles.length === 0 ? (
-                <p className="text-center text-zinc-500 py-8">Nenhum perfil encontrado</p>
-              ) : (
-                filteredProfiles.map((profile: any) => (
-                  <button
-                    key={profile.id}
-                    onClick={() => selectProfile(profile)}
-                    className={cn(
-                      "w-full p-4 rounded-xl text-left transition-all border",
-                      selectedProfile?.id === profile.id
-                        ? "bg-zinc-900 border-yellow-500/40 shadow-lg shadow-yellow-500/10"
-                        : "bg-zinc-950/50 border-transparent hover:bg-zinc-900/60"
-                    )}
-                  >
-                    <div className="flex items-center gap-4">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={profile.avatarUrl} />
-                        <AvatarFallback className="bg-gradient-to-br from-yellow-400 to-amber-600 text-black text-sm font-bold">
-                          {profile.name?.slice(0, 2).toUpperCase() || "PF"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{profile.name || "Sem nome"}</p>
-                        <p className="text-xs text-gray-500">
-                          {profile.connectedAccounts?.length || 0} conta{profile.connectedAccounts?.length !== 1 ? "s" : ""}
-                        </p>
-                      </div>
+              ) : filteredProfiles.map((profile: any) => (
+                <button
+                  key={profile.id}
+                  onClick={() => selectProfile(profile)}
+                  className={cn(
+                    "w-full p-4 rounded-xl text-left transition-all border",
+                    selectedProfile?.id === profile.id
+                      ? "bg-zinc-900 border-yellow-500/40 shadow-lg shadow-yellow-500/10"
+                      : "bg-zinc-950/50 border-transparent hover:bg-zinc-900/60"
+                  )}
+                >
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={profile.avatarUrl} />
+                      <AvatarFallback className="bg-gradient-to-br from-yellow-400 to-amber-600 text-black text-sm font-bold">
+                        {profile.name?.slice(0, 2).toUpperCase() || "PF"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">{profile.name || "Sem nome"}</p>
+                      <p className="text-xs text-gray-500">
+                        {profile.connectedAccounts?.length || 0} conta(s)
+                      </p>
                     </div>
-                  </button>
-                ))
-              )}
+                  </div>
+                </button>
+              ))}
             </div>
           </aside>
 
-          {/* Main */}
           <main className="lg:col-span-3">
             {selectedProfile ? (
               <>
                 <Card className="bg-zinc-900/70 border-zinc-800 rounded-2xl p-6 mb-8">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-5">
-                      <Avatar className="h-16 w-16 ring-4 ring-yellow-500/30">
-                        <AvatarImage src={selectedProfile.avatarUrl} />
-                        <AvatarFallback className="bg-gradient-to-br from-yellow-400 to-amber-600 text-black text-2xl font-bold">
-                          {selectedProfile.name?.slice(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <h2 className="text-2xl font-bold">{selectedProfile.name}</h2>
-                        <p className="text-gray-400 text-sm mt-1">
-                          Criado em {format(new Date(selectedProfile.createdAt), "dd/MM/yyyy")}
-                        </p>
-                      </div>
+                  <div className="flex items-center gap-5">
+                    <Avatar className="h-16 w-16 ring-4 ring-yellow-500/30">
+                      <AvatarImage src={selectedProfile.avatarUrl} />
+                      <AvatarFallback className="bg-gradient-to-br from-yellow-400 to-amber-600 text-black text-2xl font-bold">
+                        {selectedProfile.name?.slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h2 className="text-2xl font-bold">{selectedProfile.name}</h2>
+                      <p className="text-gray-400 text-sm mt-1">
+                        Criado em {format(new Date(selectedProfile.createdAt), "dd/MM/yyyy")}
+                      </p>
                     </div>
                   </div>
                 </Card>
-
-                <h3 className="text-xl font-semibold mb-6">
-                  Plataformas para <span className="text-yellow-500">{selectedProfile.name}</span>
-                </h3>
-
-                {/* SUBSTITUA apenas a parte do grid dos cards por isso aqui */}
 
                 <div className="space-y-6">
                   {platformConfig.map(({ key, name, icon: Icon }) => {
@@ -199,70 +161,35 @@ export default function ProfilesPage() {
                     const isConnected = !!account;
 
                     return (
-                      <Card
-                        key={key}
-                        className="bg-zinc-900/70 border border-zinc-800 rounded-2xl overflow-hidden hover:shadow-xl hover:shadow-yellow-500/5 transition-all duration-300"
-                      >
-                        <div className="px-6 flex items-center justify-between ">
-                          {/* Esquerda: Ícone + Info */}
+                      <Card key={key} className="bg-zinc-900/70 border border-zinc-800 rounded-2xl p-6">
+                        <div className="flex items-center justify-between">
                           <div className="flex items-center gap-6">
-                            <div className="w-16 h-16 bg-zinc-800 rounded-2xl flex items-center justify-center flex-shrink-0">
+                            <div className="w-16 h-16 bg-zinc-800 rounded-2xl flex items-center justify-center">
                               <Icon />
                             </div>
-
                             <div>
-                              <div className="flex items-center gap-3">
-                                <h4 className="text-xl font-bold">{name}</h4>
-                                {isConnected && (
-                                  <span className="px-3 py-1 bg-green-500/10 text-green-400 text-xs font-medium rounded-full">
-                                    Conectado
-                                  </span>
-                                )}
-                              </div>
-
+                              <h4 className="text-xl font-bold">{name}</h4>
                               {isConnected ? (
-                                <>
-                                  <p className="text-2xl font-medium text-yellow-500 mt-1">
-                                    @{account.username || account.displayName}
-                                  </p>
-                                  <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                                    <span>Conectado em {format(new Date(account.createdAt), "dd/MM/yyyy")}</span>
-                                    <span>•</span>
-                                    <div className="flex items-center gap-2">
-                                      <code className="bg-zinc-800/80 px-3 py-1.5 rounded-lg text-xs font-mono">
-                                        id: {account.platformAccountId.slice(0, 12)}...
-                                      </code>
-                                      <button
-                                        onClick={() => navigator.clipboard.writeText(account.platformAccountId)}
-                                        className="text-gray-400 hover:text-white transition"
-                                      >
-                                        <Copy className="h-4 w-4" />
-                                      </button>
-                                    </div>
-                                  </div>
-                                </>
+                                <p className="text-2xl font-medium text-yellow-500 mt-1">
+                                  @{account.username || account.displayName}
+                                </p>
                               ) : (
                                 <p className="text-gray-500 mt-2">Conta não conectada</p>
                               )}
                             </div>
                           </div>
 
-                          {/* Direita: Botão */}
-                          <div className="flex-shrink-0">
+                          <div>
                             {isConnected ? (
                               <Button
                                 variant="destructive"
-                                size="lg"
-                                className="bg-red-600 hover:bg-red-500 text-white font-medium px-8 rounded-xl h-12"
-                                onClick={() => disconnectMutation.mutate({ id: account.id as string, provider: "tiktok" })}
-                                disabled={disconnectMutation.isPending}
+                                onClick={async () => await disconnectMutation.mutateAsync({ id: account.id, provider: key })}
                               >
-                                {disconnectMutation.isPending ? "Desconectando..." : "Disconnect"}
+                                Desconectar
                               </Button>
                             ) : (
                               <Button
-                                size="lg"
-                                className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold px-10 rounded-xl h-12"
+                                className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold"
                                 onClick={() => connectAccount(key)}
                               >
                                 + Conectar

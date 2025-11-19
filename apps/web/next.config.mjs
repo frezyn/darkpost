@@ -4,7 +4,8 @@ const nextConfig = {
   serverExternalPackages: ["@prisma/client", "@workspace/database"],
   experimental: {
     serverMinification: false,
-    turbopackScopeHoisting: false
+    turbopackScopeHoisting: false,
+    missingSuspenseWithCSRBailout: true, //FIX: dps arrumar
   }
 
 }

@@ -18,6 +18,7 @@ import { cn } from "@workspace/ui/lib/utils";
 import { PostStatus } from "@prisma/client";
 import { useTRPC } from "@/utils/trpc";
 import { useMutation } from "@tanstack/react-query";
+import { queryClient } from "../../../components/providers"
 
 export type Platform = "tiktok" | "youtube" | "facebook";
 
@@ -67,7 +68,38 @@ export function ScheduledPostCard({
   const hasError = platforms.some(p => p.error);
   const trpc = useTRPC()
 
-  const { mutateAsync: deletePostAsync } = useMutation(trpc.providers.deletePost.mutationOptions())
+  const { mutateAsync: deletePostAsync } = useMutation(trpc.providers.deletePost.mutationOptions({
+    onMutate: async ({ idPost }) => {
+      await queryClient.cancelQueries({
+        queryKey: trpc.providers.GetAllPostsFromAccount.queryKey()
+      })
+
+      const previusData = queryClient.getQueryData(trpc.providers.GetAllPostsFromAccount.queryKey())
+
+      queryClient.setQueryData(trpc.providers.GetAllPostsFromAccount.queryKey(), (old: any) => {
+        if (!old.accounts) return old
+
+        return {
+          ...old,
+          accounts: old.accounts.filter((p: any) => p.id != idPost)
+        }
+      })
+
+      return {
+        previusData
+      }
+    },
+    onError: () => {
+      queryClient.invalidateQueries({
+        queryKey: trpc.providers.GetAllPostsFromAccount.queryKey()
+      })
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: trpc.providers.GetAllPostsFromAccount.queryKey()
+      })
+    }
+  }))
 
 
 
@@ -104,7 +136,7 @@ export function ScheduledPostCard({
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-4 mb-3">
               {/* Título */}
-              <h3 className="font-semibold text-white text-base truncate flex-1">
+              <h3 className="font-semibold text-start text-white text-base truncate flex-1">
                 {title || "Sem título"}
               </h3>
 

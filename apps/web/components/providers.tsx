@@ -34,9 +34,9 @@ function getQueryClient() {
   }
 }
 
+export const queryClient = getQueryClient();
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const queryClient = getQueryClient();
   const [trpcClient] = useState(() =>
     createTRPCClient<AppRouter>({
       links: [

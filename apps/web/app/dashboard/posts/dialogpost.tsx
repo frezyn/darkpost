@@ -20,6 +20,9 @@ import { CalendarIcon, Upload, X, CheckCircle, Loader2, Video, Clock } from "luc
 import { useTRPC } from "@/utils/trpc";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast, Toaster } from "sonner";
+import colors from "tailwindcss/colors"
+import { error } from "console";
+import { queryClient } from "@/components/providers";
 
 export default function ScheduleVideoDialog() {
   const trpc = useTRPC();
@@ -49,11 +52,67 @@ export default function ScheduleVideoDialog() {
   };
 
   const createPresignedUrl = useMutation(trpc.providers.upload.createObjectLinkS3.mutationOptions());
-  const publishPost = useMutation(trpc.providers.upload.publishPost.mutationOptions());
+  const publishPost = useMutation(trpc.providers.upload.publishPost.mutationOptions({
+    onMutate: async (newPost) => {
+      toast("Video na fila para postagem", {
+        style: {
+          backgroundColor: colors.red[600],
+          borderColor: colors.red[800]
+        }
+      })
+      queryClient.cancelQueries({
+        queryKey: trpc.providers.GetAllPostsFromAccount.queryKey()
+      })
+
+      const previusPost = queryClient.getQueryData(
+        trpc.providers.GetAllProvidersFromAccount.queryKey()
+      )
+
+      queryClient.setQueryData(
+        trpc.providers.GetAllPostsFromAccount.queryKey(),
+        (old: any) => {
+          if (!old?.accounts) return old
+          return {
+            ...old,
+            accounts: [
+              {
+                id: "temp-id-" + Date.now(),
+                ...newPost,
+                createdAt: new Date(),
+                status: "PENDING" as const,
+                socialAccount: {
+                  user: { name: "Você", image: null },
+                  connectedAccounts: []
+                },
+                caption: newPost.caption || "",
+                scheduledAt: newPost.scheduledAt,
+              },
+              ...old.accounts
+            ]
+          }
+        }
+      )
+
+      setOpen(false)
+    },
+    onError: (err) => {
+      toast(`Erro ao enviar video, ${err.message}`, {
+        style: {
+          backgroundColor: colors.red[600],
+          borderColor: colors.red[800]
+        }
+      })
+    }
+  }));
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
-    if (!file || !file.type.startsWith("video/")) return toast.error("Apenas vídeos");
+    if (!file || !file.type.startsWith("video/")) return toast.error("Apenas vídeos", {
+      style: {
+        backgroundColor: colors.red[600],
+        borderColor: colors.red[800]
+      }
+    });
 
     setFile(file);
     setIsUploading(true);
@@ -64,9 +123,19 @@ export default function ScheduleVideoDialog() {
       });
       await uploadToS3(uploadUrl, file, contentType, setUploadProgress);
       setUploadedKey(key);
-      toast.success("Upload concluído!");
+      toast.success("Upload concluído!", {
+        style: {
+          backgroundColor: colors.yellow[500],
+          borderColor: colors.black,
+        },
+      });
     } catch {
-      toast.error("Falha no upload");
+      toast.error("Falha no upload", {
+        style: {
+          backgroundColor: colors.red[600],
+          borderColor: colors.red[800]
+        }
+      });
       setFile(null);
     } finally {
       setIsUploading(false);

@@ -457,6 +457,7 @@ export function DataTable({
 
   const table = useReactTable({
     data,
+    //@ts-ignore
     columns,
     state: {
       sorting,
@@ -603,6 +604,7 @@ export function DataTable({
                     strategy={verticalListSortingStrategy}
                   >
                     {table.getRowModel().rows.map((row) => (
+                      //@ts-ignore
                       <DraggableRow key={row.id} row={row} />
                     ))}
                   </SortableContext>
