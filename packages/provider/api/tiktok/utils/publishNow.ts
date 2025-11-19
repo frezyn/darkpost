@@ -1,3 +1,4 @@
+//publiNow.ts
 import { S3Client } from "@aws-sdk/client-s3";
 import { PostStatus, prisma } from "@workspace/database";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
@@ -33,7 +34,7 @@ export async function publishVideoNow({
 
   const accessToken = socialAccount.connectedAccounts[0].accessToken;
 
-  console.log(videoKey)
+  console.log(`s3://${process.env.S3_BUCKET}/${videoKey}`)
   // 2. Criar registro do Post
   const post = await prisma.post.create({
     data: {
