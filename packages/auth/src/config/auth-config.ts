@@ -20,6 +20,32 @@ export const authConfig = {
   },
 
   callbacks: {
+    async session({ session, user }) {
+      if (!session.user) return session;
+
+
+      const dbUser = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+          emailVerified: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+      if (!dbUser) {
+        console.error("Usuário não encontrado no banco:", user.id);
+        return session;
+      }
+
+      return session;
+    },
+
+
   }
 } satisfies NextAuthConfig;
 
