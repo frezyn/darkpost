@@ -7,11 +7,13 @@ import { TRPCError } from "@trpc/server"
 
 
 export const GetAllPostsFromAccount = authProcedure.query(async ({ ctx: { session }, input }) => {
-
-
   const providersConnected = await prisma.post.findMany({
     where: {
-      userId: session.user.id
+      userId: session.user.id,
+
+    },
+    orderBy: {
+      updatedAt: "desc"
     },
     select: {
       userId: true,
