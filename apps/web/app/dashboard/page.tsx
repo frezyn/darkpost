@@ -11,6 +11,11 @@ import { DayPostsDialog } from "./dayPostsDialog"
 import { cn } from "@workspace/ui/lib/utils"
 import { Dialog, DialogTrigger } from "@workspace/ui/components/dialog"
 import Schedulevideodialog from "./posts/dialogpost"
+import { useQuery } from "@tanstack/react-query"
+import { useTRPC } from "@/utils/trpc"
+import { ScheduledPostCard } from "./posts/postsrow"
+import { error } from "console"
+import { Platform } from "./posts/postsrow"
 
 // Dados simulados (substitua por seu fetch real)
 const postsByDate: Record<string, any[]> = {
@@ -20,15 +25,14 @@ const postsByDate: Record<string, any[]> = {
   ],
 }
 
-const hasAnyPosts = false // Mude para true quando tiver posts
 
 export default function PostsPage() {
   const [view, setView] = useState<"list" | "calendar">("list")
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const trpc = useTRPC()
 
-  // Gerar os 42 dias do calendário (6 semanas)
   const monthStart = startOfMonth(currentMonth)
   const startDate = new Date(monthStart)
   startDate.setDate(startDate.getDate() - monthStart.getDay())
@@ -44,6 +48,9 @@ export default function PostsPage() {
     setDialogOpen(true)
   }
 
+  const posts = useQuery(trpc.providers.GetAllPostsFromAccount.queryOptions())
+
+  const hasAnyPosts = posts?.data?.accounts?.length! > 0 // Mude para true quando tiver posts
   const selectedKey = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null
   const dayPosts = selectedKey ? postsByDate[selectedKey] || [] : []
 
@@ -60,15 +67,7 @@ export default function PostsPage() {
 
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button className="bg-yellow-500 text-black hover:bg-yellow-600 font-medium">
-                      <Plus className="mr-2 h-4 w-4" />
-                      Criar post
-                    </Button>
-                  </DialogTrigger>
-                  <Schedulevideodialog />
-                </Dialog>
+                <Schedulevideodialog />
                 <Button variant="outline">
                   <Upload className="mr-2 h-4 w-4" />
                   Importar CSV
@@ -96,12 +95,34 @@ export default function PostsPage() {
           /* VISÃO DE LISTA */
           hasAnyPosts ? (
             <Card className="border bg-card/50">
-              <div className="p-24 text-center text-muted-foreground">
-                Sua DataTable aparecerá aqui
+              <div className="p-24 text-center space-y-3 text-muted-foreground">
+                {posts.data?.accounts.map((post) => (
+                  <ScheduledPostCard
+                    id={post.id}
+                    thumbnailUrl={post.socialAccount.user.image!}
+                    title={post.caption!}
+                    scheduledAt={new Date()}
+                    createdAt={new Date()}
+                    createdBy={post.socialAccount.user.name!}
+                    status={post.status!}
+                    platforms={
+                      [...post.socialAccount.connectedAccounts.map((conta) => {
+                        return {
+                          platform: conta.platform as Platform,
+                          username: conta.displayName!,
+                          error: ""
+                        }
+                      })]
+                    }
+
+                    onEdit={() => console.log("edit")}
+                    onRetry={() => console.log("retry")}
+                    onDelete={() => console.log("delete")}
+                  />
+                ))}
               </div>
             </Card>
           ) : (
-            /* ESTADO VAZIO - LISTA */
             <div className="flex flex-col items-center justify-center py-32 text-center">
               <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">
                 <Pencil className="h-10 w-10 text-muted-foreground" />
