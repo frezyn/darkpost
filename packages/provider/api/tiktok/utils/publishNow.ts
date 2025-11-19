@@ -19,33 +19,33 @@ export async function publishVideoNow({
   const socialAccount = await prisma.socialAccount.findUnique({
     where: { id: accountId },
     include: {
-      accounts: {
-        where: { provider: "tiktok" },
-        take: 1,
-      },
-    },
+      connectedAccounts: {
+        where: {
+          platform: "tiktok"
+        }
+      }
+    }
   });
 
-  if (!socialAccount || !socialAccount.accounts[0]?.access_token) {
+  if (!socialAccount || !socialAccount.connectedAccounts[0]?.accessToken) {
     throw new Error("Conta TikTok não conectada ou sem token");
   }
 
-  const accessToken = socialAccount.accounts[0].access_token;
-  console.log(accessToken)
+  const accessToken = socialAccount.connectedAccounts[0].accessToken;
 
+  console.log(videoKey)
   // 2. Criar registro do Post
   const post = await prisma.post.create({
     data: {
       userId: socialAccount.userId,
       videoUrl: `s3://${process.env.S3_BUCKET}/${videoKey}`,
       caption,
-      socialAccounId: accountId,
+      socialAccountId: socialAccount.id,
       status: PostStatus.PROCESSING,
     },
   });
 
   try {
-    // 3. Baixar do S3
     const { Body, ContentLength } = await s3.send(
       new GetObjectCommand({
         Bucket: process.env.S3_BUCKET!,
@@ -150,7 +150,7 @@ export async function publishVideoNow({
       where: { id: post.id },
       data: {
         status: PostStatus.SUCCESS,
-        PostId: publish_id,
+        postId: publish_id
       },
     });
 

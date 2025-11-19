@@ -26,7 +26,6 @@ export async function fetchTikTokPostStatus({
     );
 
     const data = await response.json();
-    console.log(data)
 
     // Verifica erro na API
     if (data.error?.code !== "ok") {
@@ -35,6 +34,8 @@ export async function fetchTikTokPostStatus({
     }
 
     const statusData = data.data;
+
+    console.log(statusData)
 
     // Mapeamento de status do TikTok → PostStatus
     const statusMap: Record<string, PostStatus> = {
@@ -51,7 +52,9 @@ export async function fetchTikTokPostStatus({
       where: { id: postId },
       data: {
         status: newStatus,
-        LinkVideo: data.aweme_url
+        linkVideo: statusData.aweme_url,
+        postId: statusData.publicaly_available_post_id[0] || "",
+        imageVideo: statusData
       },
     });
 

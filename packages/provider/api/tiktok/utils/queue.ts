@@ -18,13 +18,12 @@ export async function scheduleVideoPublish({
   socialAccountId: string;
   publishAt: Date;
 }) {
-  // Criar Post com status PENDING
   const post = await db.post.create({
     data: {
       userId: (await db.socialAccount.findUnique({ where: { id: socialAccountId } }))!.userId,
       videoUrl: `s3://${process.env.S3_BUCKET}/${videoKey}`,
       caption: caption || null,
-      socialAccounId: socialAccountId,
+      socialAccountId: socialAccountId,
       scheduledAt: publishAt,
       status: PostStatus.PENDING,
     },
