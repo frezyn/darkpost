@@ -4,7 +4,7 @@ import { z } from "zod"
 
 
 
-export const deleteaccount = authProcedure
+export const disconnectAccount = authProcedure
   .input(
     z.object({
       id: z.string(),
@@ -20,14 +20,11 @@ export const deleteaccount = authProcedure
   .mutation(async ({ ctx: { session }, input }) => {
     const { id, provider } = input;
 
-    console.log(id, provider)
-    await prisma.account.delete({
+
+    await prisma.connectedAccount.delete({
       where: {
-        provider_providerAccountId: {
-          provider: provider,           // ← obrigatório
-          providerAccountId: id // ← obrigatório
-        },
-      },
+        id: id
+      }
     });
 
     return {

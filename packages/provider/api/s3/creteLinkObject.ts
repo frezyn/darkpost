@@ -9,7 +9,7 @@ export const createObjectLinkS3 = authProcedure.input(z.object({
   fileName: z.string(),
   fileType: z.string(),
 })).mutation(async ({ input }) => {
-  const key = `videos/${crypto.randomUUID()}-${input.fileName}`;
+  const key = `videos/${crypto.randomUUID()}`;
 
   console.log(key, input.fileName, input.fileType)
 

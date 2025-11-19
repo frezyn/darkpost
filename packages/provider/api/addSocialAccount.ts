@@ -9,7 +9,6 @@ export const createSocialAccount = authProcedure
     z.object({
       name: z.string().min(1, { message: "O nome não pode estar em branco." }),
       description: z.string().min(1),
-      socialNameAccount: z.string().min(1)
     })
   )
   .output(
@@ -23,14 +22,13 @@ export const createSocialAccount = authProcedure
   )
   .mutation(async ({ ctx: { session }, input }) => {
     const userId = session.user.id;
-    const { name, description, socialNameAccount } = input;
+    const { name, description } = input;
 
     const newSocialAccount = await prisma.socialAccount.create({
       data: {
         name: name,
         userId: userId,
         description: description,
-        nameFromPlataform: socialNameAccount
       },
     });
 
