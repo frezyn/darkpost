@@ -1,5 +1,5 @@
 "use server"
-import { signIn } from "@workspace/auth"
+import { signIn, signOut } from "@workspace/auth"
 
 type Props = {
   email?: string;
@@ -20,4 +20,9 @@ export const LoginWithGoogle = async () => {
     redirect: true,
     redirectTo: "/dashboard",
   })
+}
+
+
+export const SingOut = async () => {
+  await signOut()
 }
