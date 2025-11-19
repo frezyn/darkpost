@@ -2,24 +2,15 @@
 
 import * as React from "react"
 import {
-  IconCamera,
   IconChartBar,
   IconDashboard,
-  IconDatabase,
-  IconFileAi,
-  IconFileDescription,
-  IconFileWord,
   IconFolder,
   IconHelp,
-  IconInnerShadowTop,
   IconListDetails,
-  IconReport,
   IconSearch,
   IconSettings,
-  IconUsers,
 } from "@tabler/icons-react"
 
-import { NavDocuments } from "@/components/nav-documents"
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
@@ -31,15 +22,14 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
 } from "@workspace/ui/components/sidebar"
-import { useSession } from "@workspace/auth"
+import Image from "next/image"
+import Logo from "../public/images/logo.png"
+import { Icon } from "lucide-react"
+
 
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   navMain: [
     {
       title: "Dashboard",
@@ -81,6 +71,7 @@ const data = {
   ],
 }
 
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" variant="sidebar"{...props}>
@@ -88,13 +79,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              asChild
+
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="#">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Dark Post</span>
-              </a>
+
+              <img
+                src={Logo.src}
+                alt="Dark Post"
+                width={80}
+                height={80}
+                className="h-10 w-10 object-contain transition-all group-data-[state=collapsed]:absolute group-data-[state=collapsed]:left-[1px] group-data-[state=collapsed]:scale-150 group-data-[state=collapsed]:!w-15 group-data-[state=collapsed]:!h-15"
+
+              />
+              <span className="text-base font-semibold group-data-[state=collapsed]:hidden">Dark Post</span>
+
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -106,6 +104,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter>
         <NavUser />
       </SidebarFooter>
-    </Sidebar>
+      <SidebarRail />
+    </Sidebar >
   )
 }

@@ -13,6 +13,8 @@ import { format } from "date-fns";
 import { Dialog, DialogTrigger } from "@workspace/ui/components/dialog";
 import { AddAccountModal } from "./components/dialogAddAccount";
 import { useSession } from "@workspace/auth";
+import { Toaster } from "sonner";
+import { useRouter } from "next/navigation";
 
 // Ícones (mantidos)
 const platformIcons = {
@@ -42,6 +44,8 @@ const platformConfig = [
 export default function ProfilesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProfile, setSelectedProfile] = useState<any>(null); // Você controla manualmente
+  const [dialog, setDialog] = useState(false)
+  const router = useRouter()
 
   const { data: session } = useSession();
   const trpc = useTRPC();
@@ -66,154 +70,157 @@ export default function ProfilesPage() {
 
   const connectAccount = (platform: string) => {
     if (!session?.user?.id || !selectedProfile?.id) return;
-    // router.replace(...) você coloca depois
-    alert(`Conta sem um plano ativo ${platform} -- Dps crio um aleta mais bonitinho, mas por enquanto, vai esse mesmo.`);
+    router.replace(
+      `/api/${platform}?userId=${session.user.id}&accountId=${selectedProfile.id}`
+    );
   };
-
   return (
-    <div className="min-h-screen bg-black text-white">
-      <div className="container mx-auto px-6 py-10 max-w-7xl">
-        <div className="mb-10">
-          <h1 className="text-4xl font-bold tracking-tight">Perfis</h1>
-          <p className="text-gray-500 mt-2">Gerencie seus perfis e contas conectadas</p>
-        </div>
+    <>
+      <Toaster />
+      <div className="min-h-screen bg-black text-white">
+        <div className="container mx-auto px-6 py-10 max-w-7xl">
+          <div className="mb-10">
+            <h1 className="text-4xl font-bold tracking-tight">Perfis</h1>
+            <p className="text-gray-500 mt-2">Gerencie seus perfis e contas conectadas</p>
+          </div>
 
-        <div className="grid lg:grid-cols-4 gap-8">
-          <aside className="lg:col-span-1">
-            <div className="relative flex-1 mb-6">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-              <Input
-                placeholder="Buscar perfil"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-zinc-900 border-zinc-800 text-white"
-              />
-            </div>
+          <div className="grid lg:grid-cols-4 gap-8">
+            <aside className="lg:col-span-1">
+              <div className="relative flex-1 mb-6">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                <Input
+                  placeholder="Buscar perfil"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 bg-zinc-900 border-zinc-800 text-white"
+                />
+              </div>
 
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className="w-full mb-6 bg-yellow-500 text-black hover:bg-yellow-400">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Novo perfil
-                </Button>
-              </DialogTrigger>
-              <AddAccountModal />
-            </Dialog>
+              <Dialog open={dialog} onOpenChange={setDialog}>
+                <DialogTrigger asChild>
+                  <Button className="w-full mb-6 bg-yellow-500 text-black hover:bg-yellow-400">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Novo perfil
+                  </Button>
+                </DialogTrigger>
+                <AddAccountModal close={() => setDialog(false)} />
+              </Dialog>
 
-            <div className="space-y-3">
-              {isLoading ? (
-                <p className="text-center text-zinc-500 py-8">Carregando...</p>
-              ) : filteredProfiles.map((profile: any) => (
-                <button
-                  key={profile.id}
-                  onClick={() => selectProfile(profile)}
-                  className={cn(
-                    "w-full p-4 rounded-xl text-left transition-all border",
-                    selectedProfile?.id === profile.id
-                      ? "bg-zinc-900 border-yellow-500/40 shadow-lg shadow-yellow-500/10"
-                      : "bg-zinc-950/50 border-transparent hover:bg-zinc-900/60"
-                  )}
-                >
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={profile.avatarUrl} />
-                      <AvatarFallback className="bg-gradient-to-br from-yellow-400 to-amber-600 text-black text-sm font-bold">
-                        {profile.name?.slice(0, 2).toUpperCase() || "PF"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium">{profile.name || "Sem nome"}</p>
-                      <p className="text-xs text-gray-500">
-                        {profile.connectedAccounts?.length || 0} conta(s)
-                      </p>
+              <div className="space-y-3">
+                {isLoading ? (
+                  <p className="text-center text-zinc-500 py-8">Carregando...</p>
+                ) : filteredProfiles.map((profile: any) => (
+                  <button
+                    key={profile.id}
+                    onClick={() => selectProfile(profile)}
+                    className={cn(
+                      "w-full p-4 rounded-xl text-left transition-all border",
+                      selectedProfile?.id === profile.id
+                        ? "bg-zinc-900 border-yellow-500/40 shadow-lg shadow-yellow-500/10"
+                        : "bg-zinc-950/50 border-transparent hover:bg-zinc-900/60"
+                    )}
+                  >
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={profile.avatarUrl} />
+                        <AvatarFallback className="bg-gradient-to-br from-yellow-400 to-amber-600 text-black text-sm font-bold">
+                          {profile.name?.slice(0, 2).toUpperCase() || "PF"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium">{profile.name || "Sem nome"}</p>
+                        <p className="text-xs text-gray-500">
+                          {profile.connectedAccounts?.length || 0} conta(s)
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </aside>
+                  </button>
+                ))}
+              </div>
+            </aside>
 
-          <main className="lg:col-span-3">
-            {selectedProfile ? (
-              <>
-                <Card className="bg-zinc-900/70 border-zinc-800 rounded-2xl p-6 mb-8">
-                  <div className="flex items-center gap-5">
-                    <Avatar className="h-16 w-16 ring-4 ring-yellow-500/30">
-                      <AvatarImage src={selectedProfile.avatarUrl} />
-                      <AvatarFallback className="bg-gradient-to-br from-yellow-400 to-amber-600 text-black text-2xl font-bold">
-                        {selectedProfile.name?.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h2 className="text-2xl font-bold">{selectedProfile.name}</h2>
-                      <p className="text-gray-400 text-sm mt-1">
-                        Criado em {format(new Date(selectedProfile.createdAt), "dd/MM/yyyy")}
-                      </p>
+            <main className="lg:col-span-3">
+              {selectedProfile ? (
+                <>
+                  <Card className="bg-zinc-900/70 border-zinc-800 rounded-2xl p-6 mb-8">
+                    <div className="flex items-center gap-5">
+                      <Avatar className="h-16 w-16 ring-4 ring-yellow-500/30">
+                        <AvatarImage src={selectedProfile.avatarUrl} />
+                        <AvatarFallback className="bg-gradient-to-br from-yellow-400 to-amber-600 text-black text-2xl font-bold">
+                          {selectedProfile.name?.slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h2 className="text-2xl font-bold">{selectedProfile.name}</h2>
+                        <p className="text-gray-400 text-sm mt-1">
+                          Criado em {format(new Date(selectedProfile.createdAt), "dd/MM/yyyy")}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </Card>
+                  </Card>
 
-                <div className="space-y-6">
-                  {platformConfig.map(({ key, name, icon: Icon }) => {
-                    const account = selectedProfile.connectedAccounts?.find(
-                      (a: any) => a.platform.toLowerCase() === key
-                    );
-                    const isConnected = !!account;
+                  <div className="space-y-6">
+                    {platformConfig.map(({ key, name, icon: Icon }) => {
+                      const account = selectedProfile.connectedAccounts?.find(
+                        (a: any) => a.platform.toLowerCase() === key
+                      );
+                      const isConnected = !!account;
 
-                    return (
-                      <Card key={key} className="bg-zinc-900/70 border border-zinc-800 rounded-2xl p-6">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-6">
-                            <div className="w-16 h-16 bg-zinc-800 rounded-2xl flex items-center justify-center">
-                              <Icon />
+                      return (
+                        <Card key={key} className="bg-zinc-900/70 border border-zinc-800 rounded-2xl p-6">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-6">
+                              <div className="w-16 h-16 bg-zinc-800 rounded-2xl flex items-center justify-center">
+                                <Icon />
+                              </div>
+                              <div>
+                                <h4 className="text-xl font-bold">{name}</h4>
+                                {isConnected ? (
+                                  <p className="text-2xl font-medium text-yellow-500 mt-1">
+                                    @{account.username || account.displayName}
+                                  </p>
+                                ) : (
+                                  <p className="text-gray-500 mt-2">Conta não conectada</p>
+                                )}
+                              </div>
                             </div>
+
                             <div>
-                              <h4 className="text-xl font-bold">{name}</h4>
                               {isConnected ? (
-                                <p className="text-2xl font-medium text-yellow-500 mt-1">
-                                  @{account.username || account.displayName}
-                                </p>
+                                <Button
+                                  variant="destructive"
+                                  onClick={async () => await disconnectMutation.mutateAsync({ id: account.id, provider: key })}
+                                >
+                                  Desconectar
+                                </Button>
                               ) : (
-                                <p className="text-gray-500 mt-2">Conta não conectada</p>
+                                <Button
+                                  className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold"
+                                  onClick={() => connectAccount(key)}
+                                >
+                                  + Conectar
+                                </Button>
                               )}
                             </div>
                           </div>
-
-                          <div>
-                            {isConnected ? (
-                              <Button
-                                variant="destructive"
-                                onClick={async () => await disconnectMutation.mutateAsync({ id: account.id, provider: key })}
-                              >
-                                Desconectar
-                              </Button>
-                            ) : (
-                              <Button
-                                className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold"
-                                onClick={() => connectAccount(key)}
-                              >
-                                + Conectar
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </Card>
-                    );
-                  })}
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-32 text-center">
+                  <div className="w-32 h-32 bg-zinc-900 rounded-full flex items-center justify-center mb-8">
+                    <Search className="h-16 w-16 text-zinc-700" />
+                  </div>
+                  <h3 className="text-3xl font-semibold mb-3">Nenhum perfil selecionado</h3>
+                  <p className="text-zinc-500 text-lg">Selecione um perfil para gerenciar suas contas</p>
                 </div>
-              </>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-32 text-center">
-                <div className="w-32 h-32 bg-zinc-900 rounded-full flex items-center justify-center mb-8">
-                  <Search className="h-16 w-16 text-zinc-700" />
-                </div>
-                <h3 className="text-3xl font-semibold mb-3">Nenhum perfil selecionado</h3>
-                <p className="text-zinc-500 text-lg">Selecione um perfil para gerenciar suas contas</p>
-              </div>
-            )}
-          </main>
+              )}
+            </main>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

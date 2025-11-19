@@ -13,7 +13,6 @@
   },
   "devDependencies": {
     "@workspace/auth": "workspace:*",
-    "@workspace/billings": "workspace:*",
     "@workspace/database": "workspace:*",
     "@workspace/email": "workspace:*",
     "@workspace/eslint-config": "workspace:*",

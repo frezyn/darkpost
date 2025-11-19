@@ -16,6 +16,7 @@ import { X, Plus, Check } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { useTRPC } from "@/utils/trpc";
 import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const platforms = [
   {
@@ -41,7 +42,7 @@ const platforms = [
   },
 ] as const;
 
-export function AddAccountModal() {
+export function AddAccountModal({ close }: { close: () => void }) {
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [description, setDescription] = useState("");
@@ -53,6 +54,8 @@ export function AddAccountModal() {
   const mutation = useMutation(trpc.providers.createSocialAccount.mutationOptions({
     onSuccess: () => {
 
+      toast("Conta criada com sucesso!")
+      close()
     },
   }));
 
@@ -129,38 +132,6 @@ export function AddAccountModal() {
           />
         </div>
 
-        {/* Plataformas */}
-        <div className="space-y-3">
-          <Label className="text-base font-medium">Plataformas que você pretende conectar</Label>
-          <div className="grid grid-cols-3 gap-4">
-            {platforms.map(({ key, name, icon: Icon }) => {
-              const isSelected = selectedPlatforms.has(key);
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => togglePlatform(key)}
-                  className={cn(
-                    "relative flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border-2 transition-all duration-200",
-                    isSelected
-                      ? "bg-yellow-500/10 border-yellow-500/50 shadow-lg shadow-yellow-500/20"
-                      : "bg-zinc-900/70 border-zinc-800 hover:bg-zinc-900 hover:border-zinc-700"
-                  )}
-                >
-                  {isSelected && (
-                    <div className="absolute top-3 right-3">
-                      <Check className="h-5 w-5 text-yellow-500" />
-                    </div>
-                  )}
-                  <Icon />
-                  <span className={cn("font-medium", isSelected && "text-yellow-500")}>
-                    {name}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
 
         {/* Botões */}
         <div className="flex justify-end gap-3 pt-4 border-t border-zinc-800">
@@ -175,7 +146,7 @@ export function AddAccountModal() {
           <Button
             type="submit"
             disabled={mutation.isPending || !name.trim()}
-            className="bg-yellow-500 hover:bg-yellow-400 text-black font-medium px-8 h-12 rounded-xl shadow-lg shadow-yellow-500/20 transition-all"
+            className="bg-yellow-500 hover:bg-yellow-400 text-black font-medium px-8 h-auto rounded-xl shadow-lg shadow-yellow-500/20 transition-all"
           >
             {mutation.isPending ? (
               "Criando perfil..."
