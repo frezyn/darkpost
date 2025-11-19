@@ -5,6 +5,24 @@ const TIKTOK_TOKEN_URL = "https://open.tiktokapis.com/v2/oauth/token/";
 const TIKTOK_USERINFO_URL = "https://open.tiktokapis.com/v2/user/info/?fields=";
 const REDIRECT_URI = `${process.env.NEXTAUTH_URL}/api/callback/tiktok`;
 
+
+interface TikTokUserData {
+  user: {
+    /** ID único do usuário na união de plataformas */
+    union_id: string;
+
+    display_name: string;
+    /** URL do avatar do usuário */
+    avatar_url: string;
+
+    /** Quantidade de seguidores */
+    follower_count: number;
+
+    /** Open ID (geralmente anonimizado no TikTok) */
+    open_id: string;
+  };
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
@@ -62,9 +80,9 @@ export async function GET(request: NextRequest) {
     }
 
 
-    let userInfo = null;
+    let userInfo: TikTokUserData | null = null;
     try {
-      const params = new URLSearchParams({ fields: "avatar_url,display_name" });
+      const params = new URLSearchParams({ fields: "open_id,union_id,avatar_url,follower_count,display_name" });
       const userResponse = await fetch(`${TIKTOK_USERINFO_URL}${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${access_token}`,
@@ -73,7 +91,7 @@ export async function GET(request: NextRequest) {
 
       if (userResponse.ok) {
         const data = await userResponse.json();
-        userInfo = data.data?.user;
+        userInfo = data.data as TikTokUserData;
       }
     } catch (err) {
       console.warn("Erro ao buscar user info (continua sem problema):", err);
@@ -81,19 +99,22 @@ export async function GET(request: NextRequest) {
     }
 
 
-    await prisma.account.create({
-      data: {
-        provider: "tiktok",
-        providerAccountId: open_id,
-        type: "oauth",
-        userId: userId,
-        socialAccountId: accountId,
-        refresh_token: refresh_token || null,
-        access_token,
-        expires_at: expires_in ? Math.floor(Date.now() / 1000) + expires_in : null,
-      },
-    });
 
+    await prisma.connectedAccount.create({
+      data: {
+        accessToken: access_token,
+        username: userInfo?.user.display_name,
+        platform: "tiktok",
+        socialAccountId: accountId,
+        platformAccountId: userInfo?.user.union_id!,
+        displayName: userInfo?.user.display_name,
+        avatarUrl: userInfo?.user.avatar_url,
+        followers: userInfo?.user.follower_count,
+        userId: userId,
+        tokenExpiresAt: new Date(expires_in) || null,
+        refreshToken: refresh_token,
+      }
+    })
     const redirectUrl = new URL(`${process.env.NEXTAUTH_URL}/dashboard/accounts`, request.url);
     redirectUrl.searchParams.set("accountId", accountId);
 

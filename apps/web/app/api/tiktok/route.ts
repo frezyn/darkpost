@@ -9,12 +9,12 @@ export async function GET(req: NextRequest) {
   const accountId = searchParams.get("accountId");
 
   if (!userId || !accountId) {
-    return NextResponse.json("query `id` e necessario", { status: 400 })
+    return NextResponse.json("query `userId` e `accountId` sao necessarios", { status: 400 })
   }
 
   const params = new URLSearchParams({
     client_key: process.env.AUTH_TIKTOK_ID!,
-    scope: 'user.info.basic,video.upload,video.publish',
+    scope: 'user.info.basic,video.upload,video.publish,user.info.stats',
     response_type: 'code',
     redirect_uri: `${process.env.NEXTAUTH_URL}/api/callback/tiktok`,
     state: userId + "," + accountId
