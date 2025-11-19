@@ -8,15 +8,16 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "postinstall": "prisma generate --schema ./packages/database/src/prisma/schema.prisma"
+    "postinstall": "prisma generate --schema ./packages/database/src/prisma/schema.prisma",
+    "worker": "pnpm dotenv -e ./.env -e ./apps/web/.env -- pnpm ts-node ./packages/provider/api/tiktok/utils/publishScheduledVideo.ts"
   },
   "devDependencies": {
     "@workspace/auth": "workspace:*",
+    "@workspace/billings": "workspace:*",
     "@workspace/database": "workspace:*",
+    "@workspace/email": "workspace:*",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/trpc": "workspace:*",
-    "@workspace/billings": "workspace:*",
-    "@workspace/email": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
     "prettier": "^3.6.2",
     "turbo": "^2.5.5",
@@ -27,10 +28,11 @@
     "node": ">=20"
   },
   "dependencies": {
+    "@prisma/client": "^6.18.0",
     "dotenv-cli": "^10.0.0",
     "next": "^15.5.4",
-    "@prisma/client": "^6.18.0",
-        "prisma": "^6.18.0"
-
+    "prisma": "^6.18.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.6"
   }
 }
